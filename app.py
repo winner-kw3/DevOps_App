@@ -5,13 +5,21 @@ import os
 app = Flask(__name__)
 
 # Connexion à la base de données PostgreSQL
+# def get_db_connection():
+#     return psycopg2.connect(
+#         dbname=os.getenv("POSTGRES_DB", "mydb"),
+#         user=os.getenv("POSTGRES_USER", "user"),
+#         password=os.getenv("POSTGRES_PASSWORD", "password"),
+#         host=os.getenv("POSTGRES_HOST", "db"),  # Nom du service défini dans docker-compose
+#         port=os.getenv("POSTGRES_PORT", "5432")
+#     )
 def get_db_connection():
     return psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB", "mydb"),
-        user=os.getenv("POSTGRES_USER", "user"),
-        password=os.getenv("POSTGRES_PASSWORD", "password"),
-        host=os.getenv("POSTGRES_HOST", "db"),  # Nom du service défini dans docker-compose
-        port=os.getenv("POSTGRES_PORT", "5432")
+        dbname=os.getenv("PGDATABASE", "mydb"),
+        user=os.getenv("PGUSER", "user"),
+        password=os.getenv("PGPASSWORD", "password"),
+        host=os.getenv("PGHOST", "db"),
+        port=os.getenv("PGPORT", "5432")
     )
 
 # Récupération des recommandations
