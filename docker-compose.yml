@@ -21,7 +21,9 @@ services:
     depends_on:
       - db
     environment:
-      - DB_NAME=mydb
-      - DB_USER=user
-      - DB_PASSWORD=password
-      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-mydb}
+      - DB_USER=${DB_USER:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - PORT=5000
