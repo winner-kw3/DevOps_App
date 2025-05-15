@@ -15,11 +15,11 @@ app = Flask(__name__)
 #     )
 def get_db_connection():
     return psycopg2.connect(
-        dbname=os.getenv("PGDATABASE", "mydb"),
-        user=os.getenv("PGUSER", "user"),
-        password=os.getenv("PGPASSWORD", "password"),
-        host=os.getenv("PGHOST", "db"),
-        port=os.getenv("PGPORT", "5432")
+        dbname=os.getenv("PGDATABASE"),
+        user=os.getenv("PGUSER"),
+        password=os.getenv("PGPASSWORD"),
+        host=os.getenv("PGHOST"),
+        port=os.getenv("PGPORT")
     )
 
 # Récupération des recommandations
