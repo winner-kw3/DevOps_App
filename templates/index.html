@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Recommandations Produits</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --text: #f1f5f9;
+            --secondary: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 40px 0 20px;
+            font-size: 2em;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: #334155;
+            color: var(--text);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--secondary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results h2 {
+            color: var(--primary);
+            font-size: 1.2em;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul li {
+            background: #334155;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text);
+        }
+
+        .error {
+            color: #f87171;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>✨ Vos recommandations produits</h1>
+
+    <div class="container">
+        <label for="item_ids">🛒 Produits consultés (IDs, séparés par virgules) :</label>
+        <input type="text" id="item_ids" placeholder="Ex: 101,202,303">
+
+        <label for="num_recommendations">🔢 Nombre de recommandations :</label>
+        <select id="num_recommendations">
+            <option value="1">1 recommandation</option>
+            <option value="3">3 recommandations</option>
+            <option value="5" selected>5 recommandations</option>
+            <option value="7">7 recommandations</option>
+            <option value="10">10 recommandations</option>
+        </select>
+
+        <button onclick="getRecommendations()">🎯 Obtenir mes recommandations</button>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        function getRecommendations() {
+            const itemIds = document.getElementById("item_ids").value.trim();
+            const numRecs = document.getElementById("num_recommendations").value;
+            const resultsDiv = document.getElementById("results");
+
+            if (!itemIds) {
+                resultsDiv.innerHTML = "<p class='error'>⚠️ Veuillez entrer au moins un item_id.</p>";
+                return;
+            }
+
+            fetch(`/recommendations?item_ids=${itemIds}&num_recommendations=${numRecs}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resultsDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                    } else {
+                        resultsDiv.innerHTML = `
+                            <h2>💡 Produits recommandés :</h2>
+                            <ul>${data.merged_recommendations.map(id => `<li>Produit #${id}</li>`).join('')}</ul>
+                            <h2>🛍️ Fréquemment achetés :</h2>
+                            <ul>${data.purchased_items.map(id => `<li>Produit #${id}</li>`).join('')}</ul>
+                            <h2>👀 Aussi vus :</h2>
+                            <ul>${data.viewed_items.map(id => `<li>Produit #${id}</li>`).join('')}</ul>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML = `<p class="error">Erreur serveur : ${error}</p>`;
+                });
+        }
+    </script>
+</body>
+
+</html>

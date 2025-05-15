@@ -1,0 +1,85 @@
+from flask import Flask, request, jsonify, render_template
+import psycopg2
+import os
+
+app = Flask(__name__)
+
+# Connexion à la base de données PostgreSQL
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB", "mydb"),
+        user=os.getenv("POSTGRES_USER", "user"),
+        password=os.getenv("POSTGRES_PASSWORD", "password"),
+        host=os.getenv("POSTGRES_HOST", "db"),  # Nom du service défini dans docker-compose
+        port=os.getenv("POSTGRES_PORT", "5432")
+    )
+
+# Récupération des recommandations
+def get_recommendations(item_ids):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = """
+        SELECT item_id FROM (
+            SELECT tp.item_id, tp.date AS event_date
+            FROM train_sessions ts
+            JOIN train_purchases tp ON ts.session_id = tp.session_id
+            WHERE ts.item_id IN %s
+            
+            UNION
+            
+            SELECT ts2.item_id, ts2.date AS event_date
+            FROM train_sessions ts1
+            JOIN train_sessions ts2 ON ts1.session_id = ts2.session_id
+            WHERE ts1.item_id IN %s AND ts2.item_id NOT IN %s
+        ) AS combined
+        ORDER BY event_date DESC
+        LIMIT 5
+    """
+    cursor.execute(query, (item_ids, item_ids, item_ids))
+    recommendations = [item[0] for item in cursor.fetchall()]
+
+    query_purchases = """
+        SELECT tp.item_id, COUNT(*) as frequency
+        FROM train_sessions ts
+        JOIN train_purchases tp ON ts.session_id = tp.session_id
+        WHERE ts.item_id IN %s
+        GROUP BY tp.item_id
+        ORDER BY frequency DESC
+    """
+    cursor.execute(query_purchases, (item_ids,))
+    purchase_recommendations = [item[0] for item in cursor.fetchall()]
+    
+    query_views = """
+        SELECT DISTINCT ts2.item_id
+        FROM train_sessions ts1
+        JOIN train_sessions ts2 ON ts1.session_id = ts2.session_id
+        WHERE ts1.item_id IN %s AND ts2.item_id NOT IN %s
+    """
+    cursor.execute(query_views, (item_ids, item_ids))
+    view_recommendations = [item[0] for item in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        "merged_recommendations": recommendations,
+        "purchased_items": purchase_recommendations,
+        "viewed_items": view_recommendations
+    }
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/recommendations', methods=['GET'])
+def recommendations():
+    try:
+        item_ids = tuple(map(int, request.args.get('item_ids', '').split(',')))
+        if len(item_ids) != 3:
+            return jsonify({"error": "Veuillez fournir exactement 3 item_ids."}), 400
+        return jsonify(get_recommendations(item_ids))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)

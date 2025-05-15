@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommandations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Obtenez des recommandations pour vos produits</h1>
+        <form id="recommendation-form">
+            <label for="item_ids">Entrez 3 item_ids (séparés par des virgules):</label>
+            <input type="text" id="item_ids" name="item_ids" placeholder="9655, 15654, 18316" required />
+            <button type="submit">Obtenir les recommandations</button>
+        </form>
+
+        <div id="recommendation-results" class="results">
+            <h2>Recommandations</h2>
+            <div>
+                <h3>Recommandations fusionnées :</h3>
+                <ul id="merged-recommendations"></ul>
+            </div>
+            <div>
+                <h3>Items achetés recommandés :</h3>
+                <ul id="purchased-items"></ul>
+            </div>
+            <div>
+                <h3>Items vus recommandés :</h3>
+                <ul id="viewed-items"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#recommendation-form').submit(function (e) {
+            e.preventDefault();
+            let itemIds = $('#item_ids').val().split(',').map(id => id.trim());
+
+            if (itemIds.length === 3) {
+                $.get(`/recommendations?item_ids=${itemIds.join(',')}`, function (data) {
+                    $('#merged-recommendations').empty();
+                    $('#purchased-items').empty();
+                    $('#viewed-items').empty();
+
+                    // Affichage des recommandations fusionnées
+                    data.merged_recommendations.forEach(function (item) {
+                        $('#merged-recommendations').append(`<li>Item ID: ${item}</li>`);
+                    });
+
+                    // Affichage des items achetés recommandés
+                    data.purchased_items.forEach(function (item) {
+                        $('#purchased-items').append(`<li>Item ID: ${item}</li>`);
+                    });
+
+                    // Affichage des items vus recommandés
+                    data.viewed_items.forEach(function (item) {
+                        $('#viewed-items').append(`<li>Item ID: ${item}</li>`);
+                    });
+                }).fail(function () {
+                    alert("Une erreur est survenue lors de la récupération des recommandations.");
+                });
+            } else {
+                alert("Veuillez entrer exactement 3 item_ids.");
+            }
+        });
+    </script>
+</body>
+
+</html>

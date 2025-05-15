@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./train_sessions_1.csv:/docker-entrypoint-initdb.d/train_sessions_1.csv
+      - ./train_purchases_1.csv:/docker-entrypoint-initdb.d/train_purchases_1.csv
+    ports:
+      - "5432:5432"
+
+  flask_app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - DB_NAME=mydb
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_HOST=db

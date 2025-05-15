@@ -1,0 +1,6 @@
+docker-compose up               # Démarrer les services
+docker-compose up -d            # Démarrer en arrière-plan
+docker-compose down             # Arrêter et supprimer les services
+docker-compose build            # Construire les images définies
+docker-compose logs             # Afficher les logs
+docker-compose exec nom bash    # Accéder à un conteneur via bash
