@@ -26,4 +26,8 @@ services:
       - DB_PASSWORD = {{PGPASSWORD}}
       - DB_HOST = {{PGHOST}}
       - DB_PORT = {{PGPORT}}
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./train_sessions_1.csv:/docker-entrypoint-initdb.d/train_sessions_1.csv
+      - ./train_purchases_1.csv:/docker-entrypoint-initdb.d/train_purchases_1.csv
     
